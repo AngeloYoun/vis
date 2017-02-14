@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.18.1
- * @date    2017-01-29
+ * @date    2017-02-13
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -29335,6 +29335,7 @@ return /******/ (function(modules) { // webpackBootstrap
         enabled: false,
         orientation: 'bottom' // top, bottom, zero
       },
+      stepped: false,
       style: 'line', // line, bar
       barChart: {
         width: 50,
@@ -29459,7 +29460,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype.setOptions = function (options) {
     if (options) {
-      var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
+      var fields = ['sampling', 'defaultGroup', 'stack', 'stepped', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
       if (options.graphHeight === undefined && options.height !== undefined) {
         this.updateSVGheight = true;
         this.updateSVGheightOnResize = true;
@@ -31244,7 +31245,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   GraphGroup.prototype.setOptions = function (options) {
     if (options !== undefined) {
-      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'zIndex', 'excludeFromStacking', 'excludeFromLegend'];
+      var fields = ['sampling', 'stepped', 'style', 'sort', 'yAxisOrientation', 'barChart', 'zIndex', 'excludeFromStacking', 'excludeFromLegend'];
       util.selectiveDeepExtend(fields, this.options, options);
 
       // if the group's drawPoints is a function delegate the callback to the onRender property
@@ -31257,6 +31258,7 @@ return /******/ (function(modules) { // webpackBootstrap
       util.mergeOptions(this.options, options, 'interpolation');
       util.mergeOptions(this.options, options, 'drawPoints');
       util.mergeOptions(this.options, options, 'shaded');
+      util.mergeOptions(this.options, options, 'stepped');
 
       if (options.interpolation) {
         if ((0, _typeof3['default'])(options.interpolation) == 'object') {
@@ -31693,7 +31695,9 @@ return /******/ (function(modules) { // webpackBootstrap
               var d = [];
 
               // construct path from dataset
-              if (group.options.interpolation.enabled == true) {
+              if (group.options.stepped == true) {
+                  d = Line._linearStepped(dataset);
+              } else if (group.options.interpolation.enabled == true) {
                   d = Line._catmullRom(dataset, group);
               } else {
                   d = Line._linear(dataset);
@@ -31819,7 +31823,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * This uses an uniform parametrization of the interpolation algorithm:
+   * This uses an uniform parameterization of the interpolation algorithm:
    * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
    * @param data
    * @returns {string}
@@ -31947,6 +31951,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
           return d;
       }
+  };
+
+  Line._linearStepped = function (data) {
+      // linear
+      var d = [];
+      for (var i = 0; i < data.length; i++) {
+          if (i) {
+              d.push([data[i].screen_x, data[i - 1].screen_y]);
+          } else {
+              d.push([data[i].screen_x, data[0].screen_y]);
+          }
+          d.push([data[i].screen_x, data[i].screen_y]);
+      }
+      return d;
   };
 
   /**
@@ -32252,6 +32270,7 @@ return /******/ (function(modules) { // webpackBootstrap
       alpha: { number: number },
       __type__: { object: object, 'boolean': bool }
     },
+    stepped: { 'boolean': bool },
     drawPoints: {
       enabled: { 'boolean': bool },
       onRender: { 'function': 'function' },
@@ -32464,6 +32483,7 @@ return /******/ (function(modules) { // webpackBootstrap
       showMajorLabels: true,
       showMinorLabels: true,
       start: '',
+      stepped: false,
       width: '100%',
       zoomable: true,
       zoomKey: ['ctrlKey', 'altKey', 'metaKey', ''],
