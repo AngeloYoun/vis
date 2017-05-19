@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.18.1
- * @date    2017-02-13
+ * @date    2017-05-19
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -29741,6 +29741,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       //Pre-load arrays from existing groups if items are not changed (not in ids)
+      var existingItemsMap = {};
       if (!groupIds && ids) {
         for (var groupId in this.groups) {
           if (this.groups.hasOwnProperty(groupId)) {
@@ -29748,6 +29749,7 @@ return /******/ (function(modules) { // webpackBootstrap
             var existing_items = group.getItems();
 
             groupsContent[groupId] = existing_items.filter(function (item) {
+              existingItemsMap[item[fieldId]] = item[fieldId];
               return item[fieldId] !== idMap[item[fieldId]];
             });
             var newLength = groupCounts[groupId];
@@ -29766,7 +29768,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (groupId === null || groupId === undefined) {
           groupId = UNGROUPED;
         }
-        if (!groupIds && ids && item[fieldId] !== idMap[item[fieldId]]) {
+        if (!groupIds && ids && item[fieldId] !== idMap[item[fieldId]] && existingItemsMap.hasOwnProperty(item[fieldId])) {
           continue;
         }
         if (!groupsContent.hasOwnProperty(groupId)) {
